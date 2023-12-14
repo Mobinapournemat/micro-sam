@@ -1,6 +1,9 @@
 import os
 import pandas as pd
 from glob import glob
+from collections import OrderedDict
+
+import torch
 
 from micro_sam.evaluation import inference
 from micro_sam.evaluation.evaluation import run_evaluation
@@ -70,6 +73,18 @@ def evaluate_interactive_prompting(prediction_root, start_with_box_prompt, model
     df.to_csv(csv_path)
 
 
+def use_disjoint_training(experiment_path, predictor, prune_prefix="encoder."):
+    experiment_state = torch.load(experiment_path, map_location="cpu")["model_state"]
+
+    updated_experiment_state = []
+    for k, v in experiment_state.items():
+        if k.startswith(prune_prefix):
+            updated_experiment_state.append((k[len(prune_prefix):], v))
+    updated_experiment_state = OrderedDict(updated_experiment_state)
+
+    predictor.model.image_encoder.load_state_dict(updated_experiment_state)
+
+
 def main(args):
     start_with_box_prompt = args.box  # overwrite to start first iters' prompt with box instead of single point
     model_description = args.model  # overwrite to specify the choice of vanilla / finetuned models
@@ -86,6 +101,9 @@ def main(args):
     # get the predictor to perform inference
     predictor = inference.get_predictor(checkpoint, model_type)
 
+    if args.experiment is not None:
+        use_disjoint_training(args.experiment, predictor)
+
     run_interactive_prompting(predictor, start_with_box_prompt, model_description, prediction_root)
     evaluate_interactive_prompting(prediction_root, start_with_box_prompt, model_description)
 
@@ -99,5 +117,6 @@ if __name__ == "__main__":
         help="Provide the model type to initialize the predictor"
     )
     parser.add_argument("-c", "--checkpoint", type=str, default=None)
+    parser.add_argument("--experiment", type=str, default=None)
     args = parser.parse_args()
     main(args)
