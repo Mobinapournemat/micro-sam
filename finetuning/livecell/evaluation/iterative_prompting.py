@@ -84,6 +84,8 @@ def use_disjoint_training(experiment_path, predictor, prune_prefix="encoder."):
 
     predictor.model.image_encoder.load_state_dict(updated_experiment_state)
 
+    return predictor
+
 
 def main(args):
     start_with_box_prompt = args.box  # overwrite to start first iters' prompt with box instead of single point
@@ -102,7 +104,7 @@ def main(args):
     predictor = inference.get_predictor(checkpoint, model_type)
 
     if args.experiment is not None:
-        use_disjoint_training(args.experiment, predictor)
+        predictor = use_disjoint_training(args.experiment, predictor)
 
     run_interactive_prompting(predictor, start_with_box_prompt, model_description, prediction_root)
     evaluate_interactive_prompting(prediction_root, start_with_box_prompt, model_description)

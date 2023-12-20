@@ -8,6 +8,7 @@
 #SBATCH --job-name=sam-iterative-prompting
 
 source activate sam
-python iterative_prompting.py --checkpoint /scratch/projects/nim00007/sam/from_carolin/vit_b/best.pt \
-                              --experiment /scratch/usr/nimanwai/experiments/unetr/by_parts/finetuned/vit_b/freeze_encoder_False/distances/dicebaseddistloss/torch-em-sam/checkpoints/livecell-all/best.pt \
-                              -m vit_b_train_with_finetuned_freeze_None --box
+sleep 10m
+python iterative_prompting.py --checkpoint /scratch/usr/nimanwai/experiments/sam/disjoint_training/10k/checkpoints/livecell_sam/best.pt \
+                              --experiment /scratch/usr/nimanwai/experiments/vnetr/10k/finetuned-10k/vit_b/freeze_encoder_False/distances/dicebaseddistloss/torch-em-scratch/checkpoints/livecell-all/best.pt \
+                              -m vit_b_train_with_finetuned_10k_freeze_None --box
